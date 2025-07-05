@@ -1,0 +1,28 @@
+[project]
+name = "baro"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "YifanYang6", email = "YifanYang6@link.cuhk.edu.cn" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "rcabench-platform>=0.2.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.7.12,<0.8.0"]
+build-backend = "uv_build"
+
+[tool.pyright]
+exclude = [ #
+    ".git",
+    "**/__pycache__",
+    ".venv",
+    ".vscode",
+    ".idea",
+    "data/",
+    "output/",
+    "temp/",
+]
