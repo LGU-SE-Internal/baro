@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "rcabench-platform>=0.2.1",
+    "rcabench-platform>=0.3.7",
 ]
 
 [build-system]
