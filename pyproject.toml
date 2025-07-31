@@ -26,3 +26,8 @@ exclude = [ #
     "output/",
     "temp/",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.7",
+]
