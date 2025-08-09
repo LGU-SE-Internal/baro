@@ -33,7 +33,7 @@ class SimpleMetricsAdapter:
         assert args.dataset == "rcaeval_re2_tt" or args.dataset.startswith("rcabench")
 
         inject_time = load_inject_time(args.dataset, args.input_folder)
-        df = preprocess(load_simple_metrics(args.dataset, args.input_folder))
+        df = load_simple_metrics(args.dataset, args.input_folder)
         #df.to_csv(args.output_folder / "simple_metrics.csv", index=False)
         output = (self.func)(data=df, inject_time=inject_time, dataset="train-ticket")
         ranks: list[str] = output["ranks"]
@@ -63,6 +63,8 @@ def load_simple_metrics(dataset: str, input_folder: Path) -> pd.DataFrame:
         return df.to_pandas()
 
     if dataset.startswith("rcabench"):
+        pl.read_parquet(input_folder / "normal_metrics.parquet").head(10)
+        
         normal_metrics = pl.scan_parquet(input_folder / "normal_metrics.parquet")
         abnormal_metrics = pl.scan_parquet(input_folder / "abnormal_metrics.parquet")
         metrics = pl.concat([normal_metrics, abnormal_metrics])
