@@ -1,7 +1,10 @@
+import concurrent.futures
+import functools
+import multiprocessing
+import sys
+import time
 from pathlib import Path
-from typing import Annotated
 
-import typer
 from rcabench.openapi import (
     AlgorithmsApi,
     DatasetsApi,
@@ -19,10 +22,12 @@ from rcabench_platform.v2.sources.rcabench import RcabenchDatapackLoader
 
 from baro.baro import Baro
 
-app = typer.Typer()
+
+# Top-level helper so it’s picklable
+def _run_callable(fn):
+    return fn()
 
 
-@app.command()
 @timeit()
 def get_dataset(id: int):
     with RCABenchClient() as client:
@@ -34,16 +39,13 @@ def get_dataset(id: int):
     return resp.data.injections
 
 
-@app.command()
 @timeit()
-def run(
-    algorithm: Annotated[str, typer.Option("-a", "--algorithm", envvar="ALGORITHM")],
-    injection_id: Annotated[int, typer.Option(help="Injection ID")],
-    injection_name: Annotated[str, typer.Option(help="Injection name")],
-):
-    assert algorithm in global_algorithm_registry(), f"Unknown algorithm: {algorithm}"
+def run_job(algorithm, algorithm_id: int, injection_id: int, injection_name: str):
+    """
+    Plain, top-level worker function (no decorators, no Typer annotations).
+    Safe to use from multiprocessing pools.
+    """
     input_path = Path("data") / "rcabench_dataset" / injection_name
-
     converted_input_path = input_path / "converted"
 
     convert_datapack(
@@ -52,7 +54,7 @@ def run(
         skip_finished=True,
     )
 
-    a = global_algorithm_registry()[algorithm]()
+    a = algorithm()
 
     answers = a(
         AlgorithmArgs(
@@ -72,7 +74,7 @@ def run(
         algo_api = AlgorithmsApi(client)
 
         resp = algo_api.api_v2_algorithms_algorithm_id_results_post(
-            algorithm_id=3,
+            algorithm_id=algorithm_id,
             execution_id=None,
             request=DtoGranularityResultEnhancedRequest(
                 results=[
@@ -92,7 +94,74 @@ def run(
         )
 
 
+def run_batch(
+    algorithm,
+    algorithm_id: int,
+    datasets: list[int],
+    *,
+    use_cpus: int | None = None,
+    ignore_exceptions: bool = True,
+):
+    logger.debug(f"algorithms=`{algorithm}`")
+
+    for dataset in datasets:
+        datapacks_injections = get_dataset(dataset)
+
+        alg = algorithm()
+        alg_cpu_count = alg.needs_cpu_count()
+
+        if alg_cpu_count is None:
+            parallel = 0
+        else:
+            assert alg_cpu_count > 0
+            usable_cpu_count = use_cpus or max(multiprocessing.cpu_count() - 4, 0)
+            parallel = usable_cpu_count // alg_cpu_count
+
+        del alg
+
+        tasks = []
+        for datapack in datapacks_injections:
+            tasks.append(
+                functools.partial(
+                    run_job,
+                    algorithm,
+                    algorithm_id,
+                    datapack.id,
+                    datapack.injection_name,
+                )
+            )
+
+        t0 = time.time()
+
+        if parallel and parallel > 1:
+            ctx = multiprocessing.get_context("spawn")
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=parallel, mp_context=ctx
+            ) as ex:
+                list(ex.map(_run_callable, tasks))
+        else:
+            for task in tasks:
+                task()
+
+        t1 = time.time()
+
+        total_walltime = t1 - t0
+        avg_walltime = total_walltime / len(tasks)
+
+        logger.debug(f"Total   walltime: {total_walltime:.3f} seconds")
+        logger.debug(f"Average walltime: {avg_walltime:.3f} seconds")
+
+        logger.debug(f"Finished running algorithm `{algorithm}` on dataset `{dataset}`")
+
+        sys.stdout.flush()
+
+
 if __name__ == "__main__":
     registry = global_algorithm_registry()
     registry["baro"] = Baro
-    run("baro", 264, "ts1-ts-ui-dashboard-request-delay-6m8m29")
+    get_dataset(2)
+    run_batch(
+        algorithm=Baro,
+        algorithm_id=49,
+        datasets=[2, 3, 4, 5],
+    )
