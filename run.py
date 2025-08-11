@@ -19,6 +19,7 @@ from rcabench_platform.v2.clients.rcabench_ import RCABenchClient
 from rcabench_platform.v2.logging import logger, timeit
 from rcabench_platform.v2.sources.convert import convert_datapack
 from rcabench_platform.v2.sources.rcabench import RcabenchDatapackLoader
+from rcabench_platform.v2.datasets.rcabench import valid
 
 from baro.baro import Baro
 
@@ -47,7 +48,7 @@ def run_job(algorithm, algorithm_id: int, injection_id: int, injection_name: str
     """
     input_path = Path("data") / "rcabench_dataset" / injection_name
     converted_input_path = input_path / "converted"
-
+    valid(input_path)
     convert_datapack(
         loader=RcabenchDatapackLoader(src_folder=input_path, datapack=injection_name),
         dst_folder=converted_input_path,
@@ -159,7 +160,6 @@ def run_batch(
 if __name__ == "__main__":
     registry = global_algorithm_registry()
     registry["baro"] = Baro
-    get_dataset(2)
     run_batch(
         algorithm=Baro,
         algorithm_id=49,
