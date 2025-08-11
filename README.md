@@ -13,3 +13,10 @@ ln -s /mnt/jfs/rcabench-platform-v2 ./
 mkdir temp
 ALGORITHM=baro INPUT_PATH=data/rcabench_dataset/ts3-ts-route-plan-service-request-delay-59s2q4 OUTPUT_PATH=temp uv run python run_exp.py
 ```
+
+```sh
+export RCABENCH_BASE_URL=http://127.0.0.1:8082
+export RCABENCH_USERNAME=admin
+export RCABENCH_PASSWORD=admin123
+sudo -E .venv/bin/python run.py batch-test
+```

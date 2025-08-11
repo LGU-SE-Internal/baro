@@ -166,7 +166,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "rcabench", specifier = ">=1.1.29" },
+    { name = "rcabench", specifier = ">=1.1.30" },
     { name = "rcabench-platform", specifier = ">=0.3.24" },
 ]
 
@@ -1075,7 +1075,7 @@ wheels = [
 
 [[package]]
 name = "rcabench"
-version = "1.1.29"
+version = "1.1.30"
 source = { registry = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1093,9 +1093,9 @@ dependencies = [
     { name = "urllib3" },
     { name = "wheel" },
 ]
-sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/f3/21/e299c5654c3b189ded93172172f8ab38cb085ae27bf9f7b1239b97ab082f/rcabench-1.1.29.tar.gz", hash = "sha256:de8138817500e78149dfbe380dc8bfae1ed070e3666d475c59ae88dc2d1882e3", size = 257675, upload-time = "2025-08-09T12:32:15.796Z" }
+sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/ff/14/1d97f46b8d7757588289b30fd4815a57f8f635a949864928de612d12f8c8/rcabench-1.1.30.tar.gz", hash = "sha256:9733a5b66b56718d306904fbe8eb87d2449797d4d41b1835bcf74201746987c2", size = 258996, upload-time = "2025-08-11T10:27:18.802Z" }
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/a3/b4/65fe36af79b506a3eb0907c11faac87d34252add038c894d5aaec0d7bbe5/rcabench-1.1.29-py3-none-any.whl", hash = "sha256:4ba1550f2c847f25e6464ca7437c9f579531ba89909276b6acff2355009fec68", size = 692400, upload-time = "2025-08-09T12:32:14.149Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/a3/5c/e6585bb024d02301b463597e2eed60af80d13bdf22935efe30220684d5bd/rcabench-1.1.30-py3-none-any.whl", hash = "sha256:b66b44745ab6b2a0f4f1c9169e4726b047b04242cd9ea688334fe49e89393539", size = 695945, upload-time = "2025-08-11T10:27:17.377Z" },
 ]
 
 [[package]]

@@ -5,6 +5,7 @@ import sys
 import time
 from pathlib import Path
 
+import typer
 from rcabench.openapi import (
     AlgorithmsApi,
     DatasetsApi,
@@ -13,15 +14,16 @@ from rcabench.openapi import (
 )
 from rcabench_platform.v2.algorithms.spec import (
     AlgorithmArgs,
-    global_algorithm_registry,
 )
 from rcabench_platform.v2.clients.rcabench_ import RCABenchClient
+from rcabench_platform.v2.datasets.rcabench import valid
 from rcabench_platform.v2.logging import logger, timeit
 from rcabench_platform.v2.sources.convert import convert_datapack
 from rcabench_platform.v2.sources.rcabench import RcabenchDatapackLoader
-from rcabench_platform.v2.datasets.rcabench import valid
 
 from baro.baro import Baro
+
+app = typer.Typer(pretty_exceptions_show_locals=False)
 
 
 # Top-level helper so it’s picklable
@@ -41,14 +43,16 @@ def get_dataset(id: int):
 
 
 @timeit()
-def run_job(algorithm, algorithm_id: int, injection_id: int, injection_name: str):
+def run_job(algorithm, algorithm_id: int, injection_id: int, injection_name: str, label: str | None = None):
     """
     Plain, top-level worker function (no decorators, no Typer annotations).
     Safe to use from multiprocessing pools.
     """
     input_path = Path("data") / "rcabench_dataset" / injection_name
     converted_input_path = input_path / "converted"
-    valid(input_path)
+    _, _valid = valid(input_path)
+    if not _valid:
+        return
     convert_datapack(
         loader=RcabenchDatapackLoader(src_folder=input_path, datapack=injection_name),
         dst_folder=converted_input_path,
@@ -77,6 +81,7 @@ def run_job(algorithm, algorithm_id: int, injection_id: int, injection_name: str
         resp = algo_api.api_v2_algorithms_algorithm_id_results_post(
             algorithm_id=algorithm_id,
             execution_id=None,
+            label=label,
             request=DtoGranularityResultEnhancedRequest(
                 results=[
                     DtoGranularityResultItem(
@@ -99,6 +104,7 @@ def run_batch(
     algorithm,
     algorithm_id: int,
     datasets: list[int],
+    label: str | None = None,
     *,
     use_cpus: int | None = None,
     ignore_exceptions: bool = True,
@@ -129,20 +135,70 @@ def run_batch(
                     algorithm_id,
                     datapack.id,
                     datapack.injection_name,
+                    label=label,
                 )
             )
 
         t0 = time.time()
+        failed_tasks = []
 
         if parallel and parallel > 1:
             ctx = multiprocessing.get_context("spawn")
             with concurrent.futures.ProcessPoolExecutor(
                 max_workers=parallel, mp_context=ctx
             ) as ex:
-                list(ex.map(_run_callable, tasks))
+                future_to_task = {
+                    ex.submit(_run_callable, task): task for task in tasks
+                }
+                for future in concurrent.futures.as_completed(future_to_task):
+                    task = future_to_task[future]
+                    try:
+                        future.result()
+                    except Exception as exc:
+                        logger.warning(f"Task failed: {exc}, will retry later")
+                        failed_tasks.append(task)
         else:
             for task in tasks:
-                task()
+                try:
+                    task()
+                except Exception as exc:
+                    logger.warning(f"Task failed: {exc}, will retry later")
+                    failed_tasks.append(task)
+
+        # Retry failed tasks
+        if failed_tasks:
+            logger.info(f"Retrying {len(failed_tasks)} failed tasks...")
+            final_failed_tasks = []
+
+            if parallel and parallel > 1:
+                ctx = multiprocessing.get_context("spawn")
+                with concurrent.futures.ProcessPoolExecutor(
+                    max_workers=parallel, mp_context=ctx
+                ) as ex:
+                    future_to_task = {
+                        ex.submit(_run_callable, task): task for task in failed_tasks
+                    }
+                    for future in concurrent.futures.as_completed(future_to_task):
+                        task = future_to_task[future]
+                        try:
+                            future.result()
+                            logger.info("Retry succeeded")
+                        except Exception as exc:
+                            logger.error(f"Retry failed: {exc}")
+                            final_failed_tasks.append(task)
+            else:
+                for task in failed_tasks:
+                    try:
+                        task()
+                        logger.info("Retry succeeded")
+                    except Exception as exc:
+                        logger.error(f"Retry failed: {exc}")
+                        final_failed_tasks.append(task)
+
+            if final_failed_tasks:
+                logger.error(f"{len(final_failed_tasks)} tasks failed even after retry")
+            else:
+                logger.info("All failed tasks succeeded on retry")
 
         t1 = time.time()
 
@@ -157,11 +213,26 @@ def run_batch(
         sys.stdout.flush()
 
 
-if __name__ == "__main__":
-    registry = global_algorithm_registry()
-    registry["baro"] = Baro
+@app.command()
+def single_test(name: str = "ts3-ts-basic-service-request-replace-method-4css6n",label: str | None = None):
+    run_job(
+        algorithm=Baro,
+        algorithm_id=49,
+        injection_id=2287,
+        injection_name=name,
+        label=label,
+    )
+
+
+@app.command()
+def batch_test(label: str | None = None):
     run_batch(
         algorithm=Baro,
         algorithm_id=49,
         datasets=[2, 3, 4, 5],
+        label=label
     )
+
+
+if __name__ == "__main__":
+    app()
