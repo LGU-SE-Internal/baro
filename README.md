@@ -15,7 +15,7 @@ ALGORITHM=baro INPUT_PATH=data/rcabench_dataset/ts3-ts-route-plan-service-reques
 ```
 
 ```sh
-export RCABENCH_BASE_URL=http://127.0.0.1:8082
+export RCABENCH_BASE_URL=http://10.10.10.220:32080
 export RCABENCH_USERNAME=admin
 export RCABENCH_PASSWORD=admin123
 sudo -E .venv/bin/python run.py batch-test

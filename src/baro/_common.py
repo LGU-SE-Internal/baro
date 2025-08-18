@@ -14,7 +14,7 @@ from rcabench_platform.v2.graphs.sdg.build_.rcaeval import (
 from rcabench_platform.v2.logging import timeit
 from rcabench_platform.v2.utils.env import debug
 from rcabench_platform.v2.utils.serde import save_parquet
-from rcabench_platform.vendor.RCAEval.time_series import preprocess
+from .time_series import preprocess
 
 RENAME_METRICS = {
     "hubble_http_request_duration_p50_seconds": "lat50",
@@ -30,12 +30,12 @@ class SimpleMetricsAdapter:
         self.func = func
 
     def __call__(self, args: AlgorithmArgs) -> list[AlgorithmAnswer]:
-        assert args.dataset == "rcaeval_re2_tt" or args.dataset.startswith("rcabench")
+        assert args.dataset.startswith("rcaeval") or args.dataset.startswith("rcabench")
 
         inject_time = load_inject_time(args.dataset, args.input_folder)
         df = load_simple_metrics(args.dataset, args.input_folder)
         #df.to_csv(args.output_folder / "simple_metrics.csv", index=False)
-        output = (self.func)(data=df, inject_time=inject_time, dataset="train-ticket")
+        output = (self.func)(data=df, inject_time=inject_time, dataset=args.dataset)
         ranks: list[str] = output["ranks"]
 
         answers: list[AlgorithmAnswer] = []

@@ -66,5 +66,5 @@ class Baro(Algorithm):
         return 4
 
     def __call__(self, args: AlgorithmArgs) -> list[AlgorithmAnswer]:
-        adapter = SimpleMetricsAdapter(partial(baro, dk_select_useful=True))
+        adapter = SimpleMetricsAdapter(partial(baro, dk_select_useful=True if args.dataset.startswith("rcabench") else False))
         return adapter(args)

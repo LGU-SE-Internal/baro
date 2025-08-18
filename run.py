@@ -74,6 +74,9 @@ def run_job(algorithm, algorithm_id: int, injection_id: int, injection_name: str
         {"level": ans.level, "result": ans.name, "rank": ans.rank, "confidence": 0}
         for ans in answers
     ]
+    if len(answers) == 0:
+        logger.warning(f"No answers from algorithm `{algorithm}`")
+        return
 
     with RCABenchClient() as client:
         algo_api = AlgorithmsApi(client)
@@ -214,11 +217,11 @@ def run_batch(
 
 
 @app.command()
-def single_test(name: str = "ts3-ts-basic-service-request-replace-method-4css6n",label: str | None = None):
+def single_test(name: str = "ts4-ts-ui-dashboard-partition-mgbg8j",label: str | None = None):
     run_job(
         algorithm=Baro,
-        algorithm_id=49,
-        injection_id=2287,
+        algorithm_id=74,
+        injection_id=5167,
         injection_name=name,
         label=label,
     )
@@ -228,8 +231,8 @@ def single_test(name: str = "ts3-ts-basic-service-request-replace-method-4css6n"
 def batch_test(label: str | None = None):
     run_batch(
         algorithm=Baro,
-        algorithm_id=49,
-        datasets=[2, 3, 4, 5],
+        algorithm_id=74,
+        datasets=[6],
         label=label
     )
 
