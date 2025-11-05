@@ -4,41 +4,41 @@
 
 ### 1. Install Dependencies
 
-bash
+```bash
 uv sync
-
+```
 
 ### 2. Build Docker Image
 
-bash
+```bash
 docker build -t baro .
-
+```
 
 ### 3. Run the Algorithm
 
-bash
+```bash
 docker run -it \
   -v $(pwd)/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc:/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc \
   -e INPUT_PATH=/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc \
   -e OUTPUT_PATH=/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc \
   -e RCABENCH_SUBMISSION='false' \
   baro
-
+```
 
 ## Parameters
 
-- `INPUT_PATH`: Input data path (absolute path inside container)
-- `OUTPUT_PATH`: Output results path (absolute path inside container)  
+- `INPUT_PATH`: Input data path
+- `OUTPUT_PATH`: Output results path 
 - `RCABENCH_SUBMISSION`: Whether to submit results to RCABench platform (default: false)
 
 ## Data Preparation
 
 Ensure the data directory structure follows:
 
-
+```bash
 data/
 └── rcabench_dataset/
     └── ts0-mysql-bandwidth-5p8bkc/
         ├── injection.json
         └── ... (other data files)
-
+```
