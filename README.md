@@ -1,19 +1,22 @@
-Baro Algorithm Reproduction
+# Baro Algorithm Reproduction
 
-Quick Start
+## Quick Start
 
-1. Install Dependencies
+### 1. Install Dependencies
 
+bash
 uv sync
 
 
-2. Build Docker Image
+### 2. Build Docker Image
 
+bash
 docker build -t baro .
 
 
-3. Run the Algorithm
+### 3. Run the Algorithm
 
+bash
 docker run -it \
   -v $(pwd)/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc:/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc \
   -e INPUT_PATH=/data/rcabench_dataset/ts0-mysql-bandwidth-5p8bkc \
@@ -22,17 +25,16 @@ docker run -it \
   baro
 
 
-Parameters
+## Parameters
 
-• INPUT_PATH: Input data path (absolute path inside container)
+- `INPUT_PATH`: Input data path (absolute path inside container)
+- `OUTPUT_PATH`: Output results path (absolute path inside container)  
+- `RCABENCH_SUBMISSION`: Whether to submit results to RCABench platform (default: false)
 
-• OUTPUT_PATH: Output results path (absolute path inside container)  
-
-• RCABENCH_SUBMISSION: Whether to submit results to RCABench platform (default: false)
-
-Data Preparation
+## Data Preparation
 
 Ensure the data directory structure follows:
+
 
 data/
 └── rcabench_dataset/
