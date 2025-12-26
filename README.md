@@ -18,7 +18,7 @@ ALGORITHM=baro INPUT_PATH=data/rcabench_dataset/ts3-ts-route-plan-service-reques
 export RCABENCH_BASE_URL=http://10.10.10.220:32080
 export RCABENCH_USERNAME=admin
 export RCABENCH_PASSWORD=admin123
-sudo -E .venv/bin/python run.py batch-test
+sudo -E .venv/bin/python run.py batch-test --label  8.24run-all2
 
 
 docker build -t 10.10.10.240/library/rca-algo-baro:820c2d7 .

@@ -234,8 +234,8 @@ def single_test(name: str = "ts4-ts-ui-dashboard-partition-mgbg8j",label: str | 
 def batch_test(label: str | None = None):
     run_batch(
         algorithm=Baro,
-        algorithm_id=74,
-        datasets=[6],
+        algorithm_id=121,
+        datasets=[12],
         label=label
     )
 
